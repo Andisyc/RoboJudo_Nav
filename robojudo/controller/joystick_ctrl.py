@@ -147,7 +147,8 @@ class JoystickCtrl(Controller):
             if self.last_ros_cmd and (time.time() - self.last_ros_cmd_time < 0.5):
                 # We still want to pass through the physical button events so we can toggle back
                 ros_cmd = self.last_ros_cmd.copy()
-                ros_cmd['button_event'] = events  # Use physical events for toggling
+                # Append physical events to ROS events
+                ros_cmd.setdefault('button_event', []).extend(events)
                 return ros_cmd
             else:
                 # ROS is the mode, but no data is coming in. Return a safe, neutral state.
