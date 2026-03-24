@@ -10,16 +10,16 @@ MAX_SPEED = 0.8  # Speed limit for joystick axes, value between 0.0 and 1.0
 
 # Keyboard to Joystick mapping
 KEY_AXIS_MAP = {
-    'w': ('ly', 1.0),   # Forward
-    's': ('ly', -1.0),  # Backward
-    'a': ('lx', -1.0),  # Left
-    'd': ('lx', 1.0),   # Right
-    'i': ('ry', 1.0),   # Cam Up
-    'k': ('ry', -1.0),  # Cam Down
-    'j': ('rx', -1.0),  # Cam Left
-    'l': ('rx', 1.0),   # Cam Right
-    'u': ('lt', 1.0),   # Left Trigger
-    'o': ('rt', 1.0),   # Right Trigger
+    'w': ('LeftY', 1.0),   # Forward
+    's': ('LeftY', -1.0),  # Backward
+    'a': ('LeftX', -1.0),  # Left
+    'd': ('LeftX', 1.0),   # Right
+    'i': ('RightY', 1.0),   # Cam Up
+    'k': ('RightY', -1.0),  # Cam Down
+    'j': ('RightX', -1.0),  # Cam Left
+    'l': ('RightX', 1.0),   # Cam Right
+    'u': ('LT', 1.0),   # Left Trigger
+    'o': ('RT', 1.0),   # Right Trigger
 }
 
 KEY_BUTTON_MAP = {
@@ -55,8 +55,8 @@ class AgentPublisher(Node):
         
         # State management
         self.axes_state = {
-            "lx": 0.0, "ly": 0.0, "lt": 0.0,
-            "rx": 0.0, "ry": 0.0, "rt": 0.0
+            "LeftX": 0.0, "LeftY": 0.0, "LT": 0.0,
+            "RightX": 0.0, "RightY": 0.0, "RT": 0.0
         }
         self.button_events = [] # A queue for button press/release events
         self.active_keys = set() # To track currently pressed keys for axes
@@ -80,6 +80,7 @@ class AgentPublisher(Node):
         print("------------------------------------------")
 
     def on_press(self, key):
+        self.get_logger().info(f"Key pressed: {key}")
         try:
             key_char = key.char
         except AttributeError:
