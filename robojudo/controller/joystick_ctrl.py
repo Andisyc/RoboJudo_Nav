@@ -25,7 +25,11 @@ class JoystickCtrl(Controller):
         self.joystick_thread.start()
 
         self.axes_names = self.joystick_thread.config["axis_config"]["axis_map"].keys()
+
+        self.control_mode = 'local'
         
+        # ========= ROS2 Subscriber =========
+
         # ROS2 and mode switching setup
         self.control_mode = 'local'  # 'local' or 'ros'
         self.last_ros_cmd_time = 0
@@ -35,6 +39,8 @@ class JoystickCtrl(Controller):
         self.toggle_debounce = False  # True if combo is pressed, to prevent rapid switching
 
         self.init_ros()
+
+        # ========= ROS2 Subscriber =========
         
         self.reset()
 
@@ -129,7 +135,12 @@ class JoystickCtrl(Controller):
     def get_data(self):
         # Always get physical events to check for mode switch
         events = self.get_events()
+
+        # ========= ROS2 Subscriber =========
+
         self._update_control_mode(events)
+
+        # ========= ROS2 Subscriber =========
 
         if self.control_mode == 'ros':
             # Use ROS command if available and recent, otherwise return empty/default
@@ -150,6 +161,7 @@ class JoystickCtrl(Controller):
                 "axes": state["axes"],
                 "button_event": events,
             }
+
 
     def process_triggers(self, ctrl_data):
         commands = []

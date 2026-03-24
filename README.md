@@ -149,7 +149,7 @@ Robot onboard PCs are also supported.
 git clone https://github.com/HansZ8/RoboJuDo.git
 cd RoboJuDo/
 # Example using conda
-conda create -n robojudo python=3.11 -y
+conda create -n robojudo python=3.12 -y
 conda activate robojudo
 ```
 **Step 2: Install RoboJuDo**
