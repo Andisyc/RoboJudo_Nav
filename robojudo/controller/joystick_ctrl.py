@@ -21,15 +21,21 @@ JOY_AXIS_MAP = {
 }
 
 # Button index → name mapping (must match agent_publisher.py KEY_BUTTON_MAP indices)
+# Indices 0-7  : standard buttons
+# Indices 11-14: D-Pad directions (mirror joystick.py dpad_map event names)
 JOY_BUTTON_MAP = {
-    0: "A",
-    1: "B",
-    2: "X",
-    3: "Y",
-    4: "LB",
-    5: "RB",
-    6: "Back",
-    7: "Start",
+    0:  "A",
+    1:  "B",
+    2:  "X",
+    3:  "Y",
+    4:  "LB",
+    5:  "RB",
+    6:  "Back",
+    7:  "Start",
+    11: "Left",
+    12: "Right",
+    13: "Up",
+    14: "Down",
 }
 
 
