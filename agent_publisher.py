@@ -9,10 +9,14 @@ MAX_SPEED = 0.8  # Speed limit for joystick axes, value between 0.0 and 1.0
 # Axis indices match DEFAULT_AXIS_MAP in ros_joystick.py:
 #   0: "lx", 1: "ly", 2: "lt", 3: "rx", 4: "ry", 5: "rt"
 KEY_AXIS_MAP = {
-    'w': (1,  1.0),   # Forward   -> ly
-    's': (1, -1.0),   # Backward  -> ly
-    'a': (0, -1.0),   # Left      -> lx
-    'd': (0,  1.0),   # Right     -> lx
+    'w':    (1,  1.0),   # Forward   -> ly
+    's':    (1, -1.0),   # Backward  -> ly
+    'a':    (0, -1.0),   # Left      -> lx
+    'd':    (0,  1.0),   # Right     -> lx
+    'up':   (1,  1.0),   # Arrow Up    -> ly (same as W)
+    'down': (1, -1.0),   # Arrow Down  -> ly (same as S)
+    'left': (0, -1.0),   # Arrow Left  -> lx (same as A)
+    'right':(0,  1.0),   # Arrow Right -> lx (same as D)
     'i': (4,  1.0),   # Cam Up    -> ry
     'k': (4, -1.0),   # Cam Down  -> ry
     'j': (3, -1.0),   # Cam Left  -> rx
@@ -76,7 +80,9 @@ class AgentPublisher(Node):
         try:
             key_char = key.char
         except AttributeError:
-            key_char = key.name  # e.g. 'space', 'esc'
+            key_char = key.name  # e.g. 'up', 'down', 'left', 'right', 'space', 'esc'
+
+        print(f"[KEY] press: {key_char!r}")  # Debug: verify pynput is capturing keys
 
         if key_char in self.active_keys:
             return  # Avoid repeat events for held-down keys
