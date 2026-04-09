@@ -88,9 +88,11 @@ class ROS2JoystickThread(Thread):
         self.event_queue = event_queue
 
     def run(self):
-        rclpy.init()
+        # rclpy may already be initialized by the parent process; only init if not yet done
+        if not rclpy.ok():
+            rclpy.init()
         ros_node = ROS2JoystickNode(self.state_queue, self.event_queue)
-        rclpy.spin(ros_node)
-        # Cleanup
-        ros_node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.spin(ros_node)
+        finally:
+            ros_node.destroy_node()
