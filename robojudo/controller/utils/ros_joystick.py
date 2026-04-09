@@ -88,9 +88,12 @@ class ROS2JoystickThread(Thread):
         self.event_queue = event_queue
 
     def run(self):
-        # rclpy may already be initialized by the parent process; only init if not yet done
-        if not rclpy.ok():
+        # rclpy.init() may have already been called by the parent process.
+        # Calling it again raises RuntimeError; we catch and proceed in that case.
+        try:
             rclpy.init()
+        except RuntimeError:
+            pass  # Already initialized — reuse the existing context
         ros_node = ROS2JoystickNode(self.state_queue, self.event_queue)
         try:
             rclpy.spin(ros_node)

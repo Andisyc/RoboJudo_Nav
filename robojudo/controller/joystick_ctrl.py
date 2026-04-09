@@ -1,15 +1,36 @@
 import time
 from queue import Empty, Queue
-import json
 from threading import Thread
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from sensor_msgs.msg import Joy
 
 from robojudo.controller import Controller, ctrl_registry
 from robojudo.controller.ctrl_cfgs import JoystickCtrlCfg
 from robojudo.controller.utils.joystick import JoystickThread
+
+# Axis index → name mapping (must match agent_publisher.py KEY_AXIS_MAP indices)
+JOY_AXIS_MAP = {
+    0: "LeftX",
+    1: "LeftY",
+    2: "LT",
+    3: "RightX",
+    4: "RightY",
+    5: "RT",
+}
+
+# Button index → name mapping (must match agent_publisher.py KEY_BUTTON_MAP indices)
+JOY_BUTTON_MAP = {
+    0: "A",
+    1: "B",
+    2: "X",
+    3: "Y",
+    4: "LB",
+    5: "RB",
+    6: "Back",
+    7: "Start",
+}
 
 
 @ctrl_registry.register
@@ -46,29 +67,54 @@ class JoystickCtrl(Controller):
 
     def init_ros(self):
         """Initializes the ROS2 node and subscriber in a separate thread."""
+        self._last_joy_buttons = None
         try:
             rclpy.init()
+        except RuntimeError:
+            pass  # Already initialized by parent process
+        try:
             self.ros_node = Node('joystick_ctrl_subscriber')
             self.ros_sub = self.ros_node.create_subscription(
-                String,
-                '/agent/joy_cmd_json',
+                Joy,
+                '/joy',
                 self._ros_cmd_callback,
                 10)
-            
+
             self.ros_thread = Thread(target=rclpy.spin, args=(self.ros_node,), daemon=True)
             self.ros_thread.start()
-            print("[JoystickCtrl] ROS2 subscriber initialized for /agent/joy_cmd_json.")
+            print("[JoystickCtrl] ROS2 subscriber initialized for /joy (sensor_msgs/Joy).")
         except Exception as e:
-            # This can happen if rclpy.init() is called elsewhere. Assume it's handled.
             print(f"[JoystickCtrl] ROS2 initialization skipped or failed: {e}")
 
-    def _ros_cmd_callback(self, msg):
-        """Callback for receiving ROS2 commands."""
-        try:
-            self.last_ros_cmd = json.loads(msg.data)
-            self.last_ros_cmd_time = time.time()
-        except json.JSONDecodeError:
-            self.ros_node.get_logger().error("Failed to decode JSON from /agent/joy_cmd_json")
+    def _ros_cmd_callback(self, msg: Joy):
+        """Callback for receiving ROS2 Joy commands."""
+        now = time.time()
+
+        # Convert indexed axes to named dict
+        axes = {name: 0.0 for name in JOY_AXIS_MAP.values()}
+        for i, value in enumerate(msg.axes):
+            if i in JOY_AXIS_MAP:
+                axes[JOY_AXIS_MAP[i]] = float(value)
+
+        # Detect button state changes and generate press/release events
+        current_buttons = list(msg.buttons)
+        if self._last_joy_buttons is None:
+            self._last_joy_buttons = [0] * len(current_buttons)
+
+        button_events = []
+        for i, pressed in enumerate(current_buttons):
+            if i < len(self._last_joy_buttons) and pressed != self._last_joy_buttons[i]:
+                if i in JOY_BUTTON_MAP:
+                    button_events.append({
+                        "type": "button",
+                        "name": JOY_BUTTON_MAP[i],
+                        "pressed": bool(pressed),
+                        "timestamp": now,
+                    })
+        self._last_joy_buttons = current_buttons
+
+        self.last_ros_cmd = {"axes": axes, "button_event": button_events}
+        self.last_ros_cmd_time = now
 
     def reset(self):
         self.combination_init_buttons = self.cfg_ctrl.combination_init_buttons
